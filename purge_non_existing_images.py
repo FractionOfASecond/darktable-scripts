@@ -14,6 +14,7 @@ QUERY = 'SELECT a.id, b.folder, a.filename FROM images AS a JOIN film_rolls AS b
 
 output = subprocess.check_output(['sqlite3', DB, QUERY]).splitlines()
 print("Image count:", len(output))
+print("Removing the following non existent file(s):")
 cont = 0
 
 with tempfile.NamedTemporaryFile(mode='w') as tmpfile:
@@ -22,7 +23,7 @@ with tempfile.NamedTemporaryFile(mode='w') as tmpfile:
         id, file_path, file_name = line.decode().split("|")
         if not os.path.isfile("{}/{}".format(file_path, file_name)):
             if args.verbose:
-                print("will remove non existing: {}/{} with ID:{}".format(file_path, file_name, id))
+                print("{}/{} with ID:{}".format(file_path, file_name, id))
             if args.p:
                 queries = u"DELETE FROM images WHERE id={};\n".format(id)
                 queries += "DELETE FROM meta_data WHERE id={};\n".format(id)
@@ -42,4 +43,5 @@ with tempfile.NamedTemporaryFile(mode='w') as tmpfile:
         message = "{} references has been removed".format(cont)
     else:
         message = "{} references could be removed".format(cont)
+        message += "\nTo really remove non existing images from the database call the program with: -p"
     print(message)
